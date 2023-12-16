@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Earthquake Visualization</title>
+  <!-- Include Leaflet CSS and JavaScript -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <!-- Include jQuery for easier AJAX requests -->
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <!-- Include Leaflet plugins for popups and legends -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body>
+
+  <div id="map" style="height: 1500px;"></div>
+
+  <script>
+    // Initialize the map
+    var myMap = L.map('map').setView([0, 0], 2);
+
+    // Add a base map layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(myMap);
+
+    // Load earthquake data from the USGS GeoJSON Feed
+    var earthquakeDataUrl = "YOUR_USGS_JSON_URL"; // Replace with your actual URL
+
+    $.getJSON(earthquakeDataUrl, function (data) {
+      // Loop through the earthquake data and create markers
+      data.features.forEach(function (quake) {
+        var magnitude = quake.properties.mag;
+        var depth = quake.geometry.coordinates[2];
+
+        // Adjust marker size and color based on magnitude and depth
+        var marker = L.circleMarker([quake.geometry.coordinates[1], quake.geometry.coordinates[0]], {
+          radius: magnitude * 5, // Adjust the multiplier as needed
+          color: getColor(depth),
+          fillColor: getColor(depth),
+          fillOpacity: 0.8
+        }).addTo(myMap);
+
+        // Add a popup with additional information
+        marker.bindPopup(`<b>${quake.properties.place}</b><br>Magnitude: ${magnitude}<br>Depth: ${depth}`);
+      });
+
+      // Add legend
+      var legend = L.control({ position: 'bottomright' });
+      legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend');
+        var depths = [0, 20, 40, 60, 80, 100];
+        div.innerHTML += '<b>Depth</b><br>';
+        for (var i = 0; i < depths.length; i++) {
+          div.innerHTML +=
+            '<i style="background:' + getColor(depths[i] + 1) + '"></i> ' +
+            depths[i] + (depths[i + 1] ? '&ndash;' + depths[i + 1] + '<br>' : '+');
+        }
+        return div;
+      };
+      legend.addTo(myMap);
+    });
+
+    // Function to determine marker color based on depth
+    function getColor(depth) {
+      return depth > 100 ? '#800026' :
+             depth > 80  ? '#BD0026' :
+             depth > 60  ? '#E31A1C' :
+             depth > 40  ? '#FC4E2A' :
+             depth > 20  ? '#FD8D3C' :
+                           '#FEB24C';
+    }
+  </script>
+
+</body>
+</html>
+
+<script>
+  // Initialize the map
+  var myMap = L.map('map').setView([0, 0], 2);
+
+  // Add a base map layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(myMap);
+
+  // Load earthquake data from the USGS GeoJSON Feed
+  var earthquakeDataUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
+
+  $.getJSON(earthquakeDataUrl, function (data) {
+    // Loop through the earthquake data and create markers
+    data.features.forEach(function (quake) {
+      var magnitude = quake.properties.mag;
+      var depth = quake.geometry.coordinates[2];
+
+      // Adjust marker size and color based on magnitude and depth
+      var marker = L.circleMarker([quake.geometry.coordinates[1], quake.geometry.coordinates[0]], {
+        radius: magnitude * 5, // Adjust the multiplier as needed
+        color: getColor(depth),
+        fillColor: getColor(depth),
+        fillOpacity: 0.8
+      }).addTo(myMap);
+
+      // Add a popup with additional information
+      marker.bindPopup(`<b>${quake.properties.place}</b><br>Magnitude: ${magnitude}<br>Depth: ${depth}`);
+    });
+
+    // Add legend
+    var legend = L.control({ position: 'bottomright' });
+    legend.onAdd = function (map) {
+      var div = L.DomUtil.create('div', 'info legend');
+      var depths = [0, 20, 40, 60, 80, 100];
+      div.innerHTML += '<b>Depth</b><br>';
+      for (var i = 0; i < depths.length; i++) {
+        div.innerHTML +=
+          '<i style="background:' + getColor(depths[i] + 1) + '"></i> ' +
+          depths[i] + (depths[i + 1] ? '&ndash;' + depths[i + 1] + '<br>' : '+');
+      }
+      return div;
+    };
+    legend.addTo(myMap);
+  });
+
+  // Function to determine marker color based on depth
+  function getColor(depth) {
+    return depth > 100 ? '#800026' :
+           depth > 80  ? '#BD0026' :
+           depth > 60  ? '#E31A1C' :
+           depth > 40  ? '#FC4E2A' :
+           depth > 20  ? '#FD8D3C' :
+                         '#FEB24C';
+  }
+</script>
